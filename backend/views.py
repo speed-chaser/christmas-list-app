@@ -8,19 +8,20 @@ from auth_utils import generate_token, verify_token
 
 
 def token_required(func):
-    print("Token_required running")
     def wrapper(*args, **kwargs):
         token = request.headers.get('Authorization')
         if not token:
             return jsonify({'message': 'Token is missing'}), 401
+        
+        # Strip 'Bearer ' from the beginning if it's there
+        if token.startswith('Bearer '):
+            token = token[7:]
 
         user = verify_token(token) 
         if not user:
             return jsonify({'message': 'Invalid token'}), 401
         
-        # Pass the user to the wrapped function
         return func(user, *args, **kwargs)
-    
     return wrapper
 
 @app.route('/users', methods=['POST'])
@@ -43,16 +44,7 @@ def create_user():
 
 @app.route('/users', methods=['GET'], endpoint='get_users')
 @token_required
-def get_users():
-    token = request.headers.get('Authorization')
-    print("Received Token:", token)  # Debugging
-
-    user = verify_token(token)
-    if not user:
-        print("Invalid Token")  # Debugging
-        return jsonify({'message': 'Invalid token'}), 401
-    
-    print("User ID:", user.id)  # Debugging
+def get_users(user):
     users = User.query.all()
     users_data = []
     for user in users:

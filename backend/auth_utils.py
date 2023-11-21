@@ -19,12 +19,11 @@ def generate_token(user):
 
 def verify_token(token):
     print("running verify_token")
+    print("token:", token)
     try:
         payload = jwt.decode(token, secret_key, algorithms=['HS256'])
         user_id = payload['user_id']
-
         user = User.query.get(user_id)
-        print("User ID:", user_id)  # debugging
 
         return user
     except jwt.ExpiredSignatureError:
